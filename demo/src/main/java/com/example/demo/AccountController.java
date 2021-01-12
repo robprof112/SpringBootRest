@@ -39,13 +39,13 @@ class AccountController {
 	AccountController(AccountRepository repository) {
 	    this.repository = repository;
 	  }
-	@GetMapping("Account{id}")
-	Optional<Account> findByID(@RequestParam(name="id",required=false,defaultValue="1")String id) 
+	@GetMapping("Accounts{id}")
+	Optional<Accounts> findByID(@RequestParam(name="id",required=false,defaultValue="1")String id) 
 	{
 		return repository.findById(Long.parseLong(id));
 	}
-	@PostMapping("Account{id,name,balance,currency}")
-	Account createOrModify(@RequestParam(name="id",required=false,defaultValue="1")String id,
+	@PostMapping("Accounts{id,name,balance,currency}")
+	Accounts createOrModify(@RequestParam(name="id",required=false,defaultValue="1")String id,
 						   @RequestParam(name="name",required=false,defaultValue="q")String name,
 						   @RequestParam(name="balance",required=false,defaultValue="1000")String balance,
 						   @RequestParam(name="currency",required=false,defaultValue="USD")String currency
@@ -53,7 +53,7 @@ class AccountController {
 			){
 		
 		if(repository.findById(Long.parseLong(id)).isEmpty()==true ) 
-		{ return repository.save(new Account(name,Money.of(new BigDecimal(balance), currency),Currency.getInstance(currency)));}
+		{ return repository.save(new Accounts(name,Money.of(new BigDecimal(balance), currency),Currency.getInstance(currency)));}
 		else {
 			return repository.findById(Long.parseLong(id)).map(acc->{
 			acc.setName(name);
@@ -66,11 +66,11 @@ class AccountController {
 		
 	}
 	@PutMapping(
-			  value = "Account{id,id2,amount,currency}", 
+			  value = "Accounts{id,id2,amount,currency}", 
 			  produces = "application/json"
 			  )
 	
-	List<Account> motherlode(//@RequestBody(required=false) Account accountz,
+	List<Accounts> motherlode(//@RequestBody(required=false) Accounts accountz,
 							@RequestParam(name="id",required=false,defaultValue="1")String iid,
 							@RequestParam(name="id2",required=false,defaultValue="2")String iid2,
 							
@@ -82,18 +82,18 @@ class AccountController {
 		System.out.println(iid+" "+aamount+" "+iid2+" "+currency);
 		BigDecimal amount = new BigDecimal(aamount);Long id = Long.parseLong(iid);
 		Long id2 = Long.parseLong(iid2);
-		List<Account> accounts=new ArrayList<>();
+		List<Accounts> accounts=new ArrayList<>();
 		
 		
 			
-		//accounts.add(repository.save(new Account(name,Money.of(amount,currency),Currency.getInstance(currency))));}
+		//accounts.add(repository.save(new Accounts(name,Money.of(amount,currency),Currency.getInstance(currency))));}
 		//if(account!=null&&repository.findById(account.id)!= null) {accounts.add(account);}
 		//if(id!=null &&id2!=null&&name==null&&amount!=null&&currency!=null&&id!=0){
 			
-			Account acc = updateBalance(repository.findById(id).get(),amount,Currency.getInstance(currency));
+			Accounts acc = updateBalance(repository.findById(id).get(),amount,Currency.getInstance(currency));
 			if(acc!=repository.findById(id).get()) {
 			repository.updateBalance(acc.getId(),acc.getBalance());
-			Account acc2 = updateBalance(repository.findById(id2).get(),amount,Currency.getInstance(currency));
+			Accounts acc2 = updateBalance(repository.findById(id2).get(),amount,Currency.getInstance(currency));
 			repository.updateBalance(acc.getId(),acc.getBalance());
 			repository.save(acc);
 			repository.save(acc2);
@@ -108,18 +108,18 @@ class AccountController {
 	  // Aggregate root
 	  // tag::get-aggregate-root[]
 	   
-	  @GetMapping("/Account")
-	  List<Account> all() {
+	  @GetMapping("/Accounts")
+	  List<Accounts> all() {
 	    return repository.findAll();
 	  }
 	  /*	
-	  @GetMapping("/Account/{id}")
-	  Optional<Account> id(@PathVariable(value="id") long id) {
+	  @GetMapping("/Accounts/{id}")
+	  Optional<Accounts> id(@PathVariable(value="id") long id) {
 	    return repository.findById(id);
 	  }
 	  
-	  @PostMapping("/Account{account}")
-	  Account CreateAccount(@RequestBody Account account) {
+	  @PostMapping("/Accounts{account}")
+	  Accounts CreateAccount(@RequestBody Accounts account) {
 		  if(account.getTreasury()==false) { 
 	  	        return repository.save(account);
 	  	        }else{return null;}
@@ -132,15 +132,15 @@ class AccountController {
 				     
 		 
 		  
-	  @PutMapping("/Account/{senderID,recipientID,payment,currency}")
-	  List<Account> replaceEmployee(
+	  @PutMapping("/Accounts/{senderID,recipientID,payment,currency}")
+	  List<Accounts> replaceEmployee(
 			  				  @RequestParam(value="senderID") long senderID,
 			  				  @RequestParam(value="recipientID") long recipientID,
 			  				  @RequestParam(value="payment") BigDecimal payment,
 			  				  @RequestParam(value="currency") String currency) {
 	
 			 
-	    Account sender = repository.findById(senderID)
+	    Accounts sender = repository.findById(senderID)
 	      .map(account -> {
 	         return updateBalance(account,payment,Currency.getInstance(currency),true);
 	      })
@@ -153,7 +153,7 @@ class AccountController {
 	    	  return null;
 	      });
 	    
-	    Account recipient = repository.findById(recipientID)
+	    Accounts recipient = repository.findById(recipientID)
 	  	      .map(account -> {
 	  	         return updateBalance(account,payment,Currency.getInstance(currency),false);
 	  	      })
@@ -165,18 +165,18 @@ class AccountController {
 	  	        
 	  	    	  return null;
 	  	      });
-	    Iterable<Account> involved_in_transaction
+	    Iterable<Accounts> involved_in_transaction
 		  = Arrays.asList(sender, recipient);
 	    return repository.saveAll(involved_in_transaction);
 	  }*/
-	Account updateBalance(Account account,BigDecimal payment,Currency currency) {
+	Accounts updateBalance(Accounts accounts,BigDecimal payment,Currency currency) {
 		MonetaryAmount amount = Monetary.getDefaultAmountFactory().setCurrency(currency.getCurrencyCode())
 			      .setNumber(payment).create();
   	 
   	  MonetaryAmount convertedAmount=Money.of(payment, currency.getCurrencyCode());
-  	  if(currency.getCurrencyCode() != account.getCurrency().getCurrencyCode()) {
-  		  		System.out.println(account.getCurrency().getCurrencyCode());
-  			    CurrencyConversion conversion = MonetaryConversions.getConversion(account.getCurrency().getCurrencyCode());
+  	  if(currency.getCurrencyCode() != accounts.getCurrency().getCurrencyCode()) {
+  		  		System.out.println(accounts.getCurrency().getCurrencyCode());
+  			    CurrencyConversion conversion = MonetaryConversions.getConversion(accounts.getCurrency().getCurrencyCode());
   			    
   			    try {
 						TimeUnit.SECONDS.sleep(5);
@@ -192,16 +192,16 @@ class AccountController {
   		System.out.print("qwqwqw");
   		System.out.print(convertedAmount);
   		System.out.print("qwqwqw11111111111");
-  		Money w = account.getBalance().subtract(convertedAmount);
+  		Money w = accounts.getBalance().subtract(convertedAmount);
   		System.out.print(w.toString());
   		System.out.print("wwwwwwwwwwwwwwwwwww3333");
   		 
-  		if(account.getTreasury()==false&&account.getBalance().add(convertedAmount).isPositiveOrZero()==false)
-		  {return account;}else {
-  		  account.setBalance(account.getBalance().add(convertedAmount));
+  		if(accounts.getTreasury()==false&&accounts.getBalance().add(convertedAmount).isPositiveOrZero()==false)
+		  {return accounts;}else {
+  		  accounts.setBalance(accounts.getBalance().add(convertedAmount));
   	  }
   	  
-  	  return account;
+  	  return accounts;
 	}      
 }
 		  
@@ -237,7 +237,7 @@ class AccountController {
 		  = Arrays.asList(senderID, recipientID);
 		 StreamSupport.stream(ids.spliterator(), false);
 		 AtomicInteger i =new AtomicInteger(0);
-		 Stream<Account> receipt = StreamSupport.stream(repository.findAllById(ids).spliterator(),false)
+		 Stream<Accounts> receipt = StreamSupport.stream(repository.findAllById(ids).spliterator(),false)
 				 		.map( account -> {
 				 			BigDecimal exchange_rate_factor= null;
 					    	  MonetaryAmount amountToConvert = Monetary.getDefaultAmountFactory().setCurrency(currency)
@@ -273,7 +273,7 @@ class AccountController {
 		 }}
 		/*
 		 System.out.println("qqqqqqqqqqqqq");
-		 Optional<Account> acc = repository.findById(senderID)
+		 Optional<Accounts> acc = repository.findById(senderID)
 			      .map(account1 -> {
 			    	  System.out.println("qqq");
 			    	  BigDecimal exchange_rate_factor= null;
@@ -299,7 +299,7 @@ class AccountController {
 			      					});
 	    
 	   
-	    Optional<Account> acc1 = repository.findById(recipientID)
+	    Optional<Accounts> acc1 = repository.findById(recipientID)
 	  	   .map(account2 -> {
 	  		 MonetaryAmount amountToConvert = Monetary.getDefaultAmountFactory().setCurrency(currency)
    			      .setNumber(payment).create();
@@ -323,7 +323,7 @@ class AccountController {
 	    	  account2.setBalance(account2.getBalance().subtract(Money.of(payment.multiply(exchange_rate_factor), currency)));
 	  	        return repository.saveAndFlush(account2);
 	  	   					});
-	    List<Optional<Account>> listOfOptionals = Arrays.asList(Optional.empty(),Optional.of(acc),Optional.of(acc1));
+	    List<Optional<Accounts>> listOfOptionals = Arrays.asList(Optional.empty(),Optional.of(acc),Optional.of(acc1));
 	    return listOfOptionals;
 	     
 	    
@@ -332,7 +332,7 @@ class AccountController {
 	  }
 	  /*
 	  @PutMapping("/employees/{id_sender,amount,currency,id_reciever}")
-	  Account transfer( @PathVariable Long id_sender,@PathVariable String amount,) {
+	  Accounts transfer( @PathVariable Long id_sender,@PathVariable String amount,) {
 
 	    return repository.findById(id)
 	      .map(employee -> {
@@ -348,18 +348,18 @@ class AccountController {
 	  // end::get-aggregate-root[]
 	  
 	  /**
-	  @PostMapping(value="/Account",params= {"name","balance","currency"})
-	  public Account create(
+	  @PostMapping(value="/Accounts",params= {"name","balance","currency"})
+	  public Accounts create(
 			  @RequestParam(value="name",required=false) String name,
 			  @RequestParam(value="balance",required=false) String balance,
 			  @RequestParam(value="currency",required=false) String currency,
 			  @RequestParam(value="recipient",required=false) String recipient,
 			  @RequestParam(value="transfer",required=false) String transfer,
 			  @RequestParam(value="transfer_currency",required=false) String transfer_currency) {
-			  	Account account = null;
+			  	Accounts account = null;
 			  	if(!name.equals("")&&!balance.equals("")&&!currency.equals(""))
 			  			 {
-			  				 account = new Account(name,balance,currency);
+			  				 account = new Accounts(name,balance,currency);
 			  			 }
 	  
 	    return repository.save(account);
@@ -367,8 +367,8 @@ class AccountController {
 
 	  // Single item
 
-	  @GetMapping(value="/Account",params= "name")
-	  public Optional<Account> one(@PathVariable Long id,@RequestParam(value="name",required=false)String name) {
+	  @GetMapping(value="/Accounts",params= "name")
+	  public Optional<Accounts> one(@PathVariable Long id,@RequestParam(value="name",required=false)String name) {
 		  return repository.findByName(name);
 	  }
 

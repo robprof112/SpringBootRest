@@ -25,11 +25,11 @@ class LoadDatabase {
     	 BigDecimal b = new BigDecimal("1000");
     	 Money m = Money.of(b, "EUR");
     	 Money m1 = Money.of(b, "USD");
-      Account acc = new Account("Bilbo Baggins",m,Currency.getInstance("EUR"));
+      Accounts acc = new Accounts("Bilbo Baggins",m,Currency.getInstance("EUR"));
       acc.setTreasury(true);
-      Account acc1 = new Account("Frodo Baggins",m1,Currency.getInstance("USD"));
+      Accounts acc1 = new Accounts("Frodo Baggins",m1,Currency.getInstance("USD"));
       acc1.setTreasury(true);
-      Account acc2 = new Account("Frodo Baggins",m1,Currency.getInstance("USD"));
+      Accounts acc2 = new Accounts("Frodo Baggins",m1,Currency.getInstance("USD"));
      
       log.info("Preloading " + repository.saveAndFlush(acc));
       log.info("Preloading " + repository.saveAndFlush(acc1));
